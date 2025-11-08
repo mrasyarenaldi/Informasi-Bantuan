@@ -1,97 +1,125 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Info Bantu</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
-      color: #333;
+      font-family: "Poppins", sans-serif;
       margin: 0;
-      padding: 20px;
+      background-color: #f5f9ff;
+      color: #333;
     }
-    h1 {
-      text-align: center;
-      color: #007b83;
-    }
-    a.button {
-      display: inline-block;
-      margin: 10px 0;
-      padding: 10px 20px;
-      background: #007b83;
+    header {
+      background-color: #1e88e5;
       color: white;
-      border-radius: 5px;
-      text-decoration: none;
+      padding: 20px 10px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    a.button:hover {
-      background: #005f63;
+    header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .btn {
+      display: inline-block;
+      background-color: #1e88e5;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.3s ease;
+    }
+    .btn:hover {
+      background-color: #1565c0;
     }
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
-      background: white;
     }
     th, td {
-      border: 1px solid #ddd;
       padding: 10px;
+      border-bottom: 1px solid #ddd;
       text-align: left;
     }
     th {
-      background: #007b83;
-      color: white;
+      background-color: #e3f2fd;
     }
-    #loading {
+    tr:hover {
+      background-color: #f1f9ff;
+    }
+    footer {
       text-align: center;
-      margin-top: 30px;
+      padding: 20px;
+      font-size: 0.9rem;
       color: #666;
+      margin-top: 40px;
     }
   </style>
 </head>
 <body>
-  <h1>Info Bantu</h1>
-  <p style="text-align:center">
-    <a id="form-link" class="button" target="_blank">Isi Formulir Bantuan</a>
-  </p>
-  <div id="loading">Memuat data...</div>
-  <table id="data-table" style="display:none">
-    <thead id="table-head"></thead>
-    <tbody id="table-body"></tbody>
-  </table>
+
+  <header>
+    <h1>💙 Info Bantu</h1>
+    <p>Berbagi dan membantu sesama di lingkungan sekitar</p>
+  </header>
+
+  <div class="container">
+    <h2>Formulir Bantuan</h2>
+    <p>Klik tombol di bawah untuk mengisi data bantuan atau kegiatan.</p>
+    <a id="form-link" href="#" target="_blank" class="btn">📝 Isi Formulir</a>
+
+    <h2 style="margin-top:30px;">Data Informasi</h2>
+    <div id="data-container">Memuat data...</div>
+  </div>
+
+  <footer>
+    <p>💡 Dibuat oleh siswa SMA untuk kebaikan bersama</p>
+  </footer>
 
   <script>
-    const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6_Y25yfOtu3cuAilh_b-eol2MTLeXWWxvlgLsGa_tk-XGQw/viewform?usp=sharing&ouid=117192239773847600901";
     const SPREADSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQyTJDNHoRKSBJ3_Qd7ORhFvv7UWFpR6kmOYeo-xTQWqHfEafnyRBDv24Bf4GvRpvlUsmI8fp-cB2VY/pub?gid=1996142682&single=true&output=csv";
+    const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6_Y25yfOtu3cuAilh_b-eol2MTLeXWWxvlgLsGa_tk-XGQw/viewform?usp=sharing";
 
     document.getElementById("form-link").href = FORM_URL;
 
-    async function loadCSV() {
+    async function loadData() {
       try {
         const response = await fetch(SPREADSHEET_CSV_URL);
-        if (!response.ok) throw new Error("Gagal mengambil data CSV");
-        const csvText = await response.text();
+        const text = await response.text();
+        const rows = text.trim().split("\n").map(r => r.split(","));
+        const headers = rows[0];
+        const dataRows = rows.slice(1);
 
-        const rows = csvText.trim().split("\n").map(r => r.split(","));
-        const headers = rows.shift();
+        let html = "<table><thead><tr>";
+        headers.forEach(h => html += `<th>${h}</th>`);
+        html += "</tr></thead><tbody>";
+        dataRows.forEach(row => {
+          html += "<tr>";
+          row.forEach(cell => html += `<td>${cell}</td>`);
+          html += "</tr>";
+        });
+        html += "</tbody></table>";
 
-        const tableHead = document.getElementById("table-head");
-        const tableBody = document.getElementById("table-body");
-        tableHead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
-        tableBody.innerHTML = rows.map(row => 
-          "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>"
-        ).join("");
-
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("data-table").style.display = "table";
-      } catch (error) {
-        document.getElementById("loading").innerText = "Gagal memuat data.";
-        console.error(error);
+        document.getElementById("data-container").innerHTML = html;
+      } catch (err) {
+        document.getElementById("data-container").innerHTML = "⚠️ Gagal memuat data.";
+        console.error(err);
       }
     }
 
-    loadCSV();
+    loadData();
   </script>
 </body>
 </html>
