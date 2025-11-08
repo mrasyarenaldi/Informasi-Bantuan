@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Info Bantu</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #007b83;
+    }
+    a.button {
+      display: inline-block;
+      margin: 10px 0;
+      padding: 10px 20px;
+      background: #007b83;
+      color: white;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+    a.button:hover {
+      background: #005f63;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background: #007b83;
+      color: white;
+    }
+    #loading {
+      text-align: center;
+      margin-top: 30px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Info Bantu</h1>
+  <p style="text-align:center">
+    <a id="form-link" class="button" target="_blank">Isi Formulir Bantuan</a>
+  </p>
+  <div id="loading">Memuat data...</div>
+  <table id="data-table" style="display:none">
+    <thead id="table-head"></thead>
+    <tbody id="table-body"></tbody>
+  </table>
+
+  <script>
+    const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe6_Y25yfOtu3cuAilh_b-eol2MTLeXWWxvlgLsGa_tk-XGQw/viewform?usp=sharing&ouid=117192239773847600901";
+    const SPREADSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQyTJDNHoRKSBJ3_Qd7ORhFvv7UWFpR6kmOYeo-xTQWqHfEafnyRBDv24Bf4GvRpvlUsmI8fp-cB2VY/pub?gid=1996142682&single=true&output=csv";
+
+    document.getElementById("form-link").href = FORM_URL;
+
+    async function loadCSV() {
+      try {
+        const response = await fetch(SPREADSHEET_CSV_URL);
+        if (!response.ok) throw new Error("Gagal mengambil data CSV");
+        const csvText = await response.text();
+
+        const rows = csvText.trim().split("\n").map(r => r.split(","));
+        const headers = rows.shift();
+
+        const tableHead = document.getElementById("table-head");
+        const tableBody = document.getElementById("table-body");
+        tableHead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+        tableBody.innerHTML = rows.map(row => 
+          "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>"
+        ).join("");
+
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("data-table").style.display = "table";
+      } catch (error) {
+        document.getElementById("loading").innerText = "Gagal memuat data.";
+        console.error(error);
+      }
+    }
+
+    loadCSV();
+  </script>
+</body>
+</html>
